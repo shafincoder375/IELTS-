@@ -246,6 +246,158 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Voice IELTS Testing</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background-color: #f5f7fa;
+    }
+    .form-section, .test-section, .certificate-section {
+      margin-bottom: 30px;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    label, input {
+      display: block;
+      margin-bottom: 10px;
+    }
+    button {
+      margin-top: 10px;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+    }
+    button:disabled {
+      background-color: gray;
+    }
+  </style>
+</head>
+<body>
+  <div class="form-section">
+    <h2>IELTS Test Registration</h2>
+    <label>Full Name: <input type="text" id="fullName" /></label>
+    <label>Date: <input type="date" id="testDate" /></label>
+    <label>Institution Name: <input type="text" id="institution" /></label>
+    <label>Examiner ID: <input type="text" id="examiner" /></label>
+    <label>Candidate Number: <input type="text" id="candidate" /></label>
+    <button onclick="startTest()">Submit & Start Test</button>
+  </div>  <div class="test-section" style="display:none">
+    <h2>Audio Test</h2>
+    <p id="paragraphText"></p>
+    <button id="listenBtn" onclick="playAudioOnce()">🎧 Listen</button>
+    <textarea id="userInput" placeholder="Type what you heard here..." rows="6" cols="50"></textarea>
+    <button onclick="evaluateAnswer()">Submit Answer</button>
+  </div>  <div class="certificate-section" style="display:none">
+    <h2>Congratulations!</h2>
+    <p>You completed the test.</p>
+    <p>Score: <span id="score"></span>%</p>
+    <p>Recommended Countries: <span id="countries"></span></p>
+    <pre id="certificateText"></pre>
+    <button onclick="downloadCertificate()">📥 Download Certificate</button>
+  </div>  <script>
+    const paragraphs = [
+      {
+        topic: "Environment",
+        text: "The environment is facing unprecedented challenges due to human activities. Deforestation, pollution, and climate change are some of the biggest threats that our planet is currently grappling with. Forests are being cut down at alarming rates, reducing biodiversity and altering ecosystems. Pollution, both industrial and domestic, has contaminated our air, water, and soil, making it harder for people and wildlife to survive. Climate change, driven by greenhouse gas emissions, is causing global temperatures to rise, leading to melting ice caps, rising sea levels, and more frequent extreme weather events. It is our collective responsibility to take care of the environment. Simple actions like recycling, conserving energy, planting trees, and reducing the use of plastic can make a big difference. Governments, organizations, and individuals all have a role to play in protecting our planet. The future of our children and the generations to come depends on how we treat the Earth today."
+      },
+      {
+        topic: "Education",
+        text: "Education is one of the most powerful tools for personal and societal development. It opens doors to opportunities, builds confidence, and empowers individuals to achieve their full potential. From early childhood education to advanced university studies, the process of learning is continuous and lifelong. In many parts of the world, access to quality education remains a challenge due to poverty, conflict, or lack of infrastructure. Investing in education is essential for breaking the cycle of poverty and promoting equality. Educated individuals tend to be healthier, earn more, and contribute positively to society. In the modern age, education goes beyond textbooks and classrooms. Digital technologies, online platforms, and virtual classrooms have revolutionized the way we learn. Teachers play a critical role in shaping young minds and inspiring curiosity. Every child, regardless of their background, deserves the chance to learn and grow."
+      },
+      {
+        topic: "Technology",
+        text: "Technology has transformed nearly every aspect of our daily lives. From smartphones to artificial intelligence, modern innovations continue to reshape the way we live, work, and communicate. The internet has made information accessible at our fingertips, enabling real-time communication across the globe. Healthcare has improved through advanced diagnostic tools, telemedicine, and robotic surgeries. Education has expanded with e-learning platforms, making knowledge available to people in remote areas. In the business world, automation and data analysis have streamlined operations and improved efficiency. However, technology also brings challenges. Cybersecurity threats, digital addiction, and job displacement due to automation are pressing issues. As we embrace new technologies, it is important to consider ethical implications and ensure that innovation serves the greater good. Responsible use and inclusive access to technology can lead to a brighter and more connected future."
+      }
+    ];
+
+    let selectedText = null;
+    let audioPlayed = false;
+
+    function speak(text) {
+      const speech = new SpeechSynthesisUtterance(text);
+      speech.lang = 'en-US';
+      speech.rate = 0.9;
+      window.speechSynthesis.speak(speech);
+    }
+
+    function startTest() {
+      if (!document.getElementById("fullName").value ||
+          !document.getElementById("testDate").value ||
+          !document.getElementById("institution").value ||
+          !document.getElementById("examiner").value ||
+          !document.getElementById("candidate").value) {
+        alert("Please fill in all fields.");
+        return;
+      }
+
+      selectedText = paragraphs[Math.floor(Math.random() * paragraphs.length)];
+      document.querySelector(".form-section").style.display = "none";
+      document.querySelector(".test-section").style.display = "block";
+      document.getElementById("paragraphText").innerText = `Topic: ${selectedText.topic}`;
+    }
+
+    function playAudioOnce() {
+      if (!audioPlayed) {
+        speak(selectedText.text);
+        audioPlayed = true;
+        document.getElementById("listenBtn").disabled = true;
+        document.getElementById("listenBtn").innerText = "✅ Played";
+      }
+    }
+
+    function evaluateAnswer() {
+      const userText = document.getElementById("userInput").value;
+      if (!userText.trim()) {
+        alert("Please type your answer.");
+        return;
+      }
+
+      const original = selectedText.text.toLowerCase().replace(/[^a-z\s]/g, '').split(/\s+/);
+      const user = userText.toLowerCase().replace(/[^a-z\s]/g, '').split(/\s+/);
+
+      let correct = 0;
+      for (let word of user) {
+        if (original.includes(word)) correct++;
+      }
+      const score = Math.round((correct / original.length) * 100);
+
+      let countries = "";
+      if (score >= 80) countries = "UK, Canada, Australia";
+      else if (score >= 60) countries = "Germany, France";
+      else if (score >= 40) countries = "Malaysia, Turkey";
+      else countries = "Local programs only";
+
+      document.getElementById("score").innerText = score;
+      document.getElementById("countries").innerText = countries;
+      document.querySelector(".test-section").style.display = "none";
+      document.querySelector(".certificate-section").style.display = "block";
+
+      const cert = `IELTS Voice Testing Certificate\n\nName: ${document.getElementById("fullName").value}\nDate: ${document.getElementById("testDate").value}\nInstitution: ${document.getElementById("institution").value}\nExaminer ID: ${document.getElementById("examiner").value}\nCandidate Number: ${document.getElementById("candidate").value}\nScore: ${score}%\nEligible Countries: ${countries}`;
+
+      document.getElementById("certificateText").innerText = cert;
+    }
+
+    function downloadCertificate() {
+      const text = document.getElementById("certificateText").innerText;
+      const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "IELTS_Certificate.txt";
+      link.click();
+    }
+  </script></body>
+  </html>
+<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>IELTS Certificate Generator</title>
   <style>
     body {
