@@ -1,0 +1,137 @@
+<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IELTS Certificate Generator</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f5f7fa;
+      color: #333;
+    }
+    .container {
+      max-width: 600px;
+      margin: auto;
+      padding: 20px;
+      background: white;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      border-radius: 10px;
+      margin-top: 40px;
+    }
+    h2 {
+      text-align: center;
+      color: #0a58ca;
+    }
+    input, select {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    button {
+      background: #0a58ca;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      width: 100%;
+      font-size: 16px;
+    }
+    .hidden {
+      display: none;
+    }
+    #certificate {
+      background: linear-gradient(45deg, #c0e0fc, #ffffff);
+      border: 2px solid #007bff;
+      border-radius: 15px;
+      padding: 30px;
+      margin-top: 20px;
+      font-family: 'Georgia', serif;
+    }
+    #certificate h3 {
+      text-align: center;
+      color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <div class="container" id="step1">
+    <h2>Candidate Information</h2>
+    <input type="text" id="fullName" placeholder="Full Name" required />
+    <input type="date" id="testDate" value="2025-08-07" />
+    <input type="text" id="institution" placeholder="Institution Name" />
+    <input type="text" id="candidateNumber" placeholder="Candidate Number" />
+    <input type="text" id="examNumber" placeholder="Examination Number" />
+    <button onclick="goToStep2()">Start</button>
+  </div>  <div class="container hidden" id="step2">
+    <h2>Test Scores</h2>
+    <input type="number" id="listening" placeholder="Listening (0-9)" min="0" max="9" />
+    <input type="number" id="reading" placeholder="Reading (0-9)" min="0" max="9" />
+    <input type="number" id="writing" placeholder="Writing (0-9)" min="0" max="9" />
+    <input type="number" id="speaking" placeholder="Speaking (0-9)" min="0" max="9" />
+    <button onclick="calculateResults()">Calculate</button>
+    <div id="certificate" class="hidden"></div>
+  </div>  <script>
+    let formData = {};
+
+    function goToStep2() {
+      formData.fullName = document.getElementById("fullName").value;
+      formData.testDate = document.getElementById("testDate").value;
+      formData.institution = document.getElementById("institution").value;
+      formData.candidateNumber = document.getElementById("candidateNumber").value;
+      formData.examNumber = document.getElementById("examNumber").value;
+
+      document.getElementById("step1").classList.add("hidden");
+      document.getElementById("step2").classList.remove("hidden");
+    }
+
+    function suggestCountry(score) {
+      if (score >= 8.0) return "UK, Canada, Australia, USA, New Zealand";
+      if (score >= 7.0) return "Canada, Australia, Germany, Ireland";
+      if (score >= 6.0) return "Germany, Poland, Netherlands, Hungary";
+      if (score >= 5.0) return "Malaysia, UAE, Turkey";
+      return "Basic English-speaking programs only";
+    }
+
+    function calculateResults() {
+      const listening = parseFloat(document.getElementById("listening").value);
+      const reading = parseFloat(document.getElementById("reading").value);
+      const writing = parseFloat(document.getElementById("writing").value);
+      const speaking = parseFloat(document.getElementById("speaking").value);
+      const total = listening + reading + writing + speaking;
+      const average = (total / 4).toFixed(1);
+      const countries = suggestCountry(average);
+
+      const cert = `
+        <h3>IELTS Certificate</h3>
+        <p><strong>Name:</strong> ${formData.fullName}</p>
+        <p><strong>Date:</strong> ${formData.testDate}</p>
+        <p><strong>Institution:</strong> ${formData.institution}</p>
+        <p><strong>Candidate No:</strong> ${formData.candidateNumber}</p>
+        <p><strong>Exam No:</strong> ${formData.examNumber}</p>
+        <p><strong>IELTS Score:</strong> ${average}</p>
+        <p><strong>Eligible Countries:</strong> ${countries}</p>
+        <button onclick="downloadPDF()">Download Certificate (PDF)</button>
+      `;
+
+      const certDiv = document.getElementById("certificate");
+      certDiv.innerHTML = cert;
+      certDiv.classList.remove("hidden");
+    }
+
+    function downloadPDF() {
+  const element = document.getElementById("certificate");
+  const opt = {
+    margin: 0.3,
+    filename: `IELTS_Certificate_${formData.fullName}.pdf`,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 1.5 }, // scale কমানো হলো
+    jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' } // A4 সাইজ ব্যবহার করা হলো
+  };
+  html2pdf().from(element).set(opt).save();
+    }
+  </script>  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script></body>
+</html>
